@@ -5,8 +5,12 @@ import re
 import datetime
 import time
 import glob
+import json
 from tqdm import tqdm_notebook
 from colorama import Fore, Style
+
+from dotenv import load_dotenv
+load_dotenv('../../.env')
 
 %matplotlib inline
 import matplotlib.pyplot as plt
@@ -29,7 +33,7 @@ plt.rc('ytick', labelsize=SMALL_SIZE)
 plt.rc('legend', fontsize=MEDIUM_SIZE)
 plt.rc('axes', titlesize=BIGGER_SIZE)
 
-def savefig(plt, name):
+def savefig(name):
     plt.savefig(f'../../figures/{name}.png', bbox_inches='tight', dpi=300)
 
 %reload_ext autoreload

@@ -58,8 +58,6 @@ client = bigquery.Client()
 # # Page Paths
 # Alex's development notebook for page paths.
 
-# Look for some samples...
-
 # ## Read data
 
 # ### Read from bigquery (old code)
@@ -187,7 +185,15 @@ df[df.hitNumber == df.numHits].pagePath.value_counts(ascending=False)[:10]
 # #  (2, [3, 4]),
 # #  (2, [4])]
 # 
+# print(ps.topk(5, filter=lambda patt, matches: matches[0][0] > 0))
+# # [(2, [1, 1]),
+# #  (2, [1, 1, 1]),
+# #  (2, [1, 2, 2]),
+# #  (2, [2, 2]),
+# #  (1, [1, 2, 2, 0])]
 # ```
+
+# ### Dev work with `prefixspan`
 
 from prefixspan import PrefixSpan
 
@@ -241,7 +247,7 @@ def get_topk_sequences(page_sequences, k):
 get_topk_sequences(page_sequences, 10)
 
 
-# Let's drop all the rows where consecutive hits are from the same page
+# Let's drop all the rows where consecutive hits are from the same page (not necessary with new filtering technique - below)
 
 def make_page_sequences(df) -> list:
     data, d = [], []
@@ -294,6 +300,241 @@ get_topk_sequences(page_sequences, 10)
 
 
 # Ah.. the issue here is that is that pages can be skipped. For example "home" -> "pdp" -> "home" can result in the extraction of the first pattern above :(
+# 
+# This behaviour is OK (for now at least), but I want to include a filter to remove rows with duplicate pages
+
+def custom_filter(patt, matches):
+    """
+    Filter top sequence results, removing matches that
+        - Have duplicate elements
+        
+    patt : list
+        Sequential pattern e.g. [1, 2]
+        
+    matches : list
+        Index and position of matches
+        e.g. [(0, 1), (1, 0), (2, 1), (3, 0)]
+    """
+    patt_len = len(patt)
+    if patt_len <= 1:
+        return False
+    elif len(set(patt)) != patt_len:
+        return False
+    return True
+
+def get_topk_sequences(page_sequences, k, custom_filter):
+    prefix_spans = PrefixSpan(page_sequences)
+    top_k = prefix_spans.topk(k, filter=custom_filter)
+    
+    out = []
+    for count, page_labels in top_k:
+        out.append([count, [page_le.inverse_transform(x) for x in page_labels]])
+        
+    return out
+
+get_topk_sequences(page_sequences, 10, custom_filter)
+
+
+# That is very slow... probably better to get the top k results and the filter myself
+
+def custom_filter(patt, matches=None):
+    """
+    Filter top sequence results, removing matches that
+        - Have length 1
+        - Have duplicate elements
+        
+    patt : list
+        Sequential pattern e.g. [1, 2]
+        
+    matches : list
+        Index and position of matches (not used).
+        e.g. [(0, 1), (1, 0), (2, 1), (3, 0)]
+    """
+    patt_len = len(patt)
+    if patt_len <= 1:
+        return False
+    elif len(set(patt)) != patt_len:
+        return False
+    return True
+
+def get_topk_sequences(page_sequences, k, custom_filter):
+    prefix_spans = PrefixSpan(page_sequences)
+    top_k = prefix_spans.topk(k)
+    
+    out = []
+    out_labels = []
+    for count, page_labels in top_k:
+        if custom_filter(page_labels):
+            out_labels.append([count, page_labels])
+            out.append([count, [page_le.inverse_transform(label)
+                                for label in page_labels]])
+
+    return out, out_labels
+
+topk, topk_labels = get_topk_sequences(page_sequences, 200, custom_filter)
+
+
+topk
+
+
+topk_labels
+
+
+# Save index results using a callback
+
+def custom_filter(patt, matches=None):
+    """
+    Filter top sequence results, removing matches that
+        - Have length 1
+        - Have duplicate elements
+        
+    patt : list
+        Sequential pattern e.g. [1, 2]
+        
+    matches : list
+        Index and position of matches (not used).
+        e.g. [(0, 1), (1, 0), (2, 1), (3, 0)]
+    """
+    patt_len = len(patt)
+    if patt_len <= 1:
+        return False
+    elif len(set(patt)) != patt_len:
+        return False
+    return True
+
+def callback(patt, matches, top_k, patt_indices, pbar):
+    patt_id = '_'.join([str(x) for x in patt])
+    patt_indices[patt_id] = [m[0] for m in matches]
+    top_k.append([len(matches), patt])
+    pbar.update(1)
+
+def get_topk_sequences(page_sequences, k, custom_filter, callback):
+    prefix_spans = PrefixSpan(page_sequences)
+    patt_indices = {}
+    pbar = tqdm(total=len(page_sequences))
+    top_k = []
+    prefix_spans.topk(k, callback=lambda patt, matches: callback(patt, matches, top_k, patt_indices, pbar))
+    pbar.close()
+    
+    out = []
+    out_labels = []
+    for count, page_labels in top_k:
+        if custom_filter(page_labels):
+            out_labels.append([count, page_labels])
+            out.append([count, [page_le.inverse_transform(label)
+                                for label in page_labels]])
+
+    return out, out_labels, patt_indices
+
+topk, topk_labels, patt_indices = get_topk_sequences(page_sequences, 200, custom_filter, callback)
+
+
+topk
+
+
+topk_labels
+
+
+patt_labels_eg = topk_labels[0][1]
+patt_eg = topk[0][1]
+
+print('Indeces for top pattern: {} (labels={})'.format(patt_eg, patt_labels_eg))
+patt_indices['_'.join([str(x) for x in patt_labels_eg])]
+
+
+# We can use these to map back onto training data.
+
+len(df)
+
+
+len(page_sequences)
+
+
+# ### Session aggregate dataframe
+
+def make_session_agg_df(df) -> pd.DataFrame:
+    df_ = df.copy()
+    df_.transactions = df_.transactions.fillna(0)
+    
+    data = []
+    cols = ['id', 'date', 'is_mobile', 'transactions', 'num_hits',
+            'page_paths', 'page_titles', 'page_labels']
+
+    for id_ in tqdm_notebook(df_['id'].drop_duplicates().tolist()):
+        m = df_['id'] == id_
+        s = df_[m]
+        data.append([
+            id_,
+            s.date.iloc[0],
+            s.isMobile.iloc[0],
+            s.transactions.sum(),
+            s.numHits.iloc[0],
+            s.pagePath.tolist(),
+            s.pageTitle.tolist(),
+            s.page_label.tolist(),
+        ])
+        
+    return pd.DataFrame(data, columns=cols)
+        
+df_sess = make_session_agg_df(df)
+
+
+df_sess.page_titles.values.sum()[:10]
+
+
+from sklearn.preprocessing import LabelEncoder
+
+page_path_le = LabelEncoder()
+df['page_path_labels'] = df.page_paths.apply(lambda x: [page_path_le.transform(x_) for x_ in x])
+
+page_title_le = LabelEncoder()
+page_title_le.fit(sum(df.page_titles.tolist()))
+df['page_title_labels'] = df.page_titles.apply(lambda x: [page_title_le.transform(x_) for x_ in x])
+
+
+df_sess.head()
+
+
+df_sess.tail()
+
+
+df_sess.dtypes
+
+
+df_sess.to_csv('../../data/interim/page_paths_sess_agg_raw.csv', index=False)
+df_sess.to_pickle('../../data/interim/page_paths_sess_agg_raw.pkl')
+
+
+def load_file(f_path, load_pkl):
+    if not os.path.exists(f_path):
+        print('No data found. Run data load script above.')
+        return
+    print('Loading {}'.format(f_path))
+    if load_pkl:
+        df = pd.read_pickle(f_path)
+    else:
+        df = pd.read_csv(f_path)
+        df.date = pd.to_datetime(df.date)
+    return df
+
+# Looking forward to walrus operator for stuff like this...
+tmp = load_file('../../data/interim/page_paths_sess_agg_raw.pkl')
+if tmp is not None:
+    print('Loading from file')
+    df_sess = tmp.copy()
+    del tmp
+
+
+df_sess.head()
+
+
+# ### Modling converting / non-converting sessions with page path features
+
+# ### Page sequence trends over time
+
+# ### Top page transitions
+# 
+# Given a specific page, what's the probability of going to each other page? Where does site exits rank in here.
 
 # ### TODO
 # 
