@@ -706,6 +706,15 @@ plot_validation_curve(
 );
 
 
+max_depths
+
+
+train_scores.mean(axis=1)
+
+
+test_scores.mean(axis=1)
+
+
 # ### Page sequence trends over time
 
 # ### Top page transitions
