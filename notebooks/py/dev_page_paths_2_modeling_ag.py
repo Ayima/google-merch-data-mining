@@ -367,7 +367,7 @@ df_training.head()
 
 # Fill NaN page_paths with `Home`.
 
-# **NOTE: making a huge assumption here (that ever NaN is a homepage - might not be the case). Be more carful if running this in production.**
+# **NOTE: making a huge assumption here (that every NaN is a homepage - might not be the case). Be more carful if running this in production.**
 
 df_training['page_titles_nan_fill'] = df_training['page_titles'].apply(
     lambda seq: ['Home' if str(x) == 'nan' else x for x in seq]
@@ -714,6 +714,25 @@ train_scores.mean(axis=1)
 
 test_scores.mean(axis=1)
 
+
+# Let's just go ahead and pick up the 100 max depth model for the sake of looking at feature importances.
+
+import pandas as pd
+
+
+# Some bug.. need to reboot the notebook
+
+X = df_training[features].sample(frac=1).values
+y = df_training[target].sample(frac=1).values
+
+clf = RandomForestClassifier(n_estimators=100, max_depth=100)
+clf.fit(X, y)
+
+
+# TODO:
+# - Try model above
+# - Try oversampling converting sessions
+# - Try other feature selection ideas
 
 # ### Page sequence trends over time
 

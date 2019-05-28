@@ -12226,10 +12226,10 @@ dtype: object</pre>
 
  
  
-<div id="a71ccb60-eeda-4abe-b996-6f6d535f8d61"></div>
+<div id="c54f2811-7726-490b-968d-e4851c819fea"></div>
 <div class="output_subarea output_widget_view ">
 <script type="text/javascript">
-var element = $('#a71ccb60-eeda-4abe-b996-6f6d535f8d61');
+var element = $('#c54f2811-7726-490b-968d-e4851c819fea');
 </script>
 <script type="application/vnd.jupyter.widget-view+json">
 {"model_id": "91b1096df9cd42c7a448eff49650c41c", "version_major": 2, "version_minor": 0}
@@ -13758,7 +13758,7 @@ Name: 35915, dtype: object</pre>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><strong>NOTE: making a huge assumption here (that ever NaN is a homepage - might not be the case). Be more carful if running this in production.</strong></p>
+<p><strong>NOTE: making a huge assumption here (that every NaN is a homepage - might not be the case). Be more carful if running this in production.</strong></p>
 
 </div>
 </div>
@@ -17685,6 +17685,115 @@ height=291
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Let's just go ahead and pick up the 100 max depth model for the sake of looking at feature importances.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[327]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Some bug.. need to reboot the notebook</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[328]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X</span> <span class="o">=</span> <span class="n">df_training</span><span class="p">[</span><span class="n">features</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">df_training</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">clf</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_text output_error">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">AssertionError</span>                            Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-328-621928666fc3&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-green-fg">----&gt; 1</span><span class="ansi-red-fg"> </span>X <span class="ansi-blue-fg">=</span> df_training<span class="ansi-blue-fg">[</span>features<span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">.</span>sample<span class="ansi-blue-fg">(</span>frac<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">.</span>values
+<span class="ansi-green-intense-fg ansi-bold">      2</span> y <span class="ansi-blue-fg">=</span> df_training<span class="ansi-blue-fg">[</span>target<span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">.</span>sample<span class="ansi-blue-fg">(</span>frac<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">.</span>values
+<span class="ansi-green-intense-fg ansi-bold">      3</span> 
+<span class="ansi-green-intense-fg ansi-bold">      4</span> clf <span class="ansi-blue-fg">=</span> RandomForestClassifier<span class="ansi-blue-fg">(</span>n_estimators<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">100</span><span class="ansi-blue-fg">,</span> max_depth<span class="ansi-blue-fg">=</span><span class="ansi-cyan-fg">100</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">      5</span> clf<span class="ansi-blue-fg">.</span>fit<span class="ansi-blue-fg">(</span>X<span class="ansi-blue-fg">,</span> y<span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">/anaconda3/lib/python3.6/site-packages/pandas/core/generic.py</span> in <span class="ansi-cyan-fg">sample</span><span class="ansi-blue-fg">(self, n, frac, replace, weights, random_state, axis)</span>
+<span class="ansi-green-intense-fg ansi-bold">   4199</span>                              &#34;provide positive value.&#34;)
+<span class="ansi-green-intense-fg ansi-bold">   4200</span> 
+<span class="ansi-green-fg">-&gt; 4201</span><span class="ansi-red-fg">         </span>locs <span class="ansi-blue-fg">=</span> rs<span class="ansi-blue-fg">.</span>choice<span class="ansi-blue-fg">(</span>axis_length<span class="ansi-blue-fg">,</span> size<span class="ansi-blue-fg">=</span>n<span class="ansi-blue-fg">,</span> replace<span class="ansi-blue-fg">=</span>replace<span class="ansi-blue-fg">,</span> p<span class="ansi-blue-fg">=</span>weights<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   4202</span>         <span class="ansi-green-fg">return</span> self<span class="ansi-blue-fg">.</span>take<span class="ansi-blue-fg">(</span>locs<span class="ansi-blue-fg">,</span> axis<span class="ansi-blue-fg">=</span>axis<span class="ansi-blue-fg">,</span> is_copy<span class="ansi-blue-fg">=</span><span class="ansi-green-fg">False</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   4203</span> 
+
+<span class="ansi-green-fg">mtrand.pyx</span> in <span class="ansi-cyan-fg">mtrand.RandomState.choice</span><span class="ansi-blue-fg">()</span>
+
+<span class="ansi-green-fg">mtrand.pyx</span> in <span class="ansi-cyan-fg">mtrand.RandomState.permutation</span><span class="ansi-blue-fg">()</span>
+
+<span class="ansi-green-fg">mtrand.pyx</span> in <span class="ansi-cyan-fg">mtrand.RandomState.shuffle</span><span class="ansi-blue-fg">()</span>
+
+<span class="ansi-green-fg">/anaconda3/lib/python3.6/site-packages/numpy/core/_internal.py</span> in <span class="ansi-cyan-fg">__init__</span><span class="ansi-blue-fg">(self, array, ptr)</span>
+<span class="ansi-green-intense-fg ansi-bold">    294</span>             <span class="ansi-red-fg"># get a void pointer to the buffer, which keeps the array alive</span>
+<span class="ansi-green-intense-fg ansi-bold">    295</span>             self<span class="ansi-blue-fg">.</span>_data <span class="ansi-blue-fg">=</span> _get_void_ptr<span class="ansi-blue-fg">(</span>array<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-fg">--&gt; 296</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">assert</span> self<span class="ansi-blue-fg">.</span>_data<span class="ansi-blue-fg">.</span>value <span class="ansi-blue-fg">==</span> ptr
+<span class="ansi-green-intense-fg ansi-bold">    297</span>         <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-intense-fg ansi-bold">    298</span>             <span class="ansi-red-fg"># fake a pointer-like object that holds onto the reference</span>
+
+<span class="ansi-red-fg">AssertionError</span>: </pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>TODO:</p>
+<ul>
+<li>Try model above</li>
+<li>Try oversampling converting sessions</li>
+<li>Try other feature selection ideas</li>
+</ul>
+
+</div>
+</div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
