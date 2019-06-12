@@ -1,6 +1,6 @@
-# GA Data Mining
+# Google Merch Data Mining
 
-The purpose of this repository is to build reproducible data mining pipelines using GA data.   Source data is primarily from Google Analytics and BigQuery via GA 360.
+The purpose of this repository is to build reproducible data mining pipelines using GA data. Source data is primarily from Google Analytics and BigQuery via GA 360.
 
 We explore topics such as
 - User / session clustering
