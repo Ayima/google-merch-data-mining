@@ -650,19 +650,24 @@ def product_forcast(
     yearly_seasonality=10,
     weekly_seasonality=False,
     daily_seasonality=False,
-    add_back_outlier_revenue=True,
+    add_back_outlier_revenue=False,
 ) -> pd.DataFrame:
 
     # Filter on product & remove outliers
+    outlier_sum = 0
     df_ = df[df.v2ProductName == product_name].copy()
     m = pd.Series(True, index=df_.index)
     if ignore_std:
         m = df_.productRevenue < (df_.productRevenue.mean() + df_.productRevenue.std()*ignore_std)
-        if add_back_outlier_revenue:
-            outlier_sum = df_.loc[~m, 'productRevenue'].sum() / 1e6
-        else:
-            outlier_sum = 0
-        print('Ignoring {} outlier points'.format((~m).sum()))
+        outlier_sum = df_.loc[~m, 'productRevenue'].sum() / 1e6
+        print('Ignoring {:} outlier points (${:,})'.format((~m).sum(), outlier_sum))
+
+    if add_back_outlier_revenue:
+        print('Warning, adding back outlier revenue to forecast but not '
+             'including it in previous year numbers. Set '
+              'add_back_outlier_revenue=False to fix this.')
+    else:
+        outlier_sum = 0
         
     print('Found {} product transactions'.format(m.sum()))
     if m.sum() == 0:
@@ -686,6 +691,9 @@ def product_forcast(
     future = model.make_future_dataframe(periods=52, freq='7D')
     forecast = model.predict(future)
     model.plot(forecast)
+    plt.ylim(bottom=0)
+    plt.ylabel('{} Revenue (USD)'.format(product_name.title()))
+    plt.xlabel('Date')
     savefig('sales_forecast_{}'.format(slugify(product_name)))
     
     print('Generating quarterly forecasts')
