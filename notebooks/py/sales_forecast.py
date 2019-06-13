@@ -98,7 +98,8 @@ def load_file(f_path):
     df.date = pd.to_datetime(df.date)
     return df
 
-df = load_file('../../data/interim/sales_forecast_raw.csv')
+f_path = os.path.join(os.getenv('DATA_PATH'), 'interim', 'sales_forecast_raw.csv')
+df = load_file(f_path)
 
 
 df.head()
@@ -188,6 +189,8 @@ m.fit(df_prophet)
 future = m.make_future_dataframe(periods=365, freq='D')
 forecast = m.predict(future)
 fig = m.plot(forecast)
+plt.ylabel('Sales (USD)')
+plt.xlabel('Date')
 
 savefig('sales_forecast')
 
@@ -464,11 +467,11 @@ segment_forecast_daily(df, 'deviceCategory')
 # Cool! We can see distinct trends for day of week on mobile VS desktop.
 
 df_fltr = df[~(df.source.isin(['not available in demo dataset', '(not set)']))]
-segment_forecast_daily(df_fltr, 'source')
+segment_forecast_daily(df_fltr, 'source', max_num_segments=4)
 
 
 df_fltr = df[~(df.country.isin(['not available in demo dataset', '(not set)']))]
-segment_forecast_daily(df_fltr, 'country')
+segment_forecast_daily(df_fltr, 'country', max_num_segments=3)
 
 
 df_fltr = df[~(df.region.isin(['not available in demo dataset', '(not set)']))]
