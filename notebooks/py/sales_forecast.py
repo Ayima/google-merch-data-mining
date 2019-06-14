@@ -556,7 +556,7 @@ df.v2ProductName.value_counts(ascending=False).head(10)
 # How many of the *same* product are ordered together?
 
 s = df.productQuantity.value_counts().sort_index(ascending=False)
-s.name = 'Number of Product Duplicates in Baskets'
+s.name = 'Number of product duplicates in basket'
 pd.DataFrame(index=list(range(2,21))).join(s).iloc[::-1].plot.barh(color='b')
 savefig('sales_forecast_product_duplicates')
 
@@ -584,8 +584,23 @@ df['transactionId'] = df['visitId'].astype(str) + '|' + df['fullVisitorId'].asty
 
 m = ~(df[['transactionId', 'v2ProductName', 'productVariant']].duplicated())
 s = df[m].groupby('transactionId').size().value_counts().sort_index(ascending=False)
-s.name = 'Number of Unique Products in Baskets'
+s.name = 'Number of distinct products in basket'
+
 pd.DataFrame(index=list(range(1,21))).join(s).iloc[::-1].plot.barh(color='b')
+# savefig('sales_forecast_unique_basket_products')
+
+
+# How does this look on a % scale
+
+from matplotlib.ticker import FuncFormatter
+
+m = ~(df[['transactionId', 'v2ProductName', 'productVariant']].duplicated())
+s = df[m].groupby('transactionId').size().value_counts().sort_index(ascending=False)
+s = s / s.sum()
+s.name = 'Number of distinct products in basket'
+
+ax = pd.DataFrame(index=list(range(1,21))).join(s).iloc[::-1].plot.barh(color='b')
+ax.xaxis.set_major_formatter(FuncFormatter(lambda y, _: '{:.0%}'.format(y))) 
 savefig('sales_forecast_unique_basket_products')
 
 
