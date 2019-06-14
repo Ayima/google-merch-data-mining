@@ -34,7 +34,9 @@ plt.rc('legend', fontsize=MEDIUM_SIZE)
 plt.rc('axes', titlesize=BIGGER_SIZE)
 
 def savefig(name):
-    plt.savefig(f'../../results/figures/{name}.png', bbox_inches='tight', dpi=300)
+    f_name = '../../results/figures/{}.png'.format(name)
+    print('Saving figure to file: {}'.format(f_name))
+    plt.savefig(f_name, bbox_inches='tight', dpi=300)
 
 get_ipython().run_line_magic('reload_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
@@ -298,6 +300,17 @@ print('> {:.0f}% of yellow orders have blue'.format(m_y_and_b_sunglasses.sum() /
 print('> {:.0f}% of blue orders have yellow'.format(m_y_and_b_sunglasses.sum() / m_blue_sunglasses.sum() * 100))
 
 
+m_red_sunglasses = df_itemsets_by_transaction.fullProductName.apply(lambda x: 'Google Sunglasses (RED)' in x)
+m_blue_sunglasses = df_itemsets_by_transaction.fullProductName.apply(lambda x: 'Google Sunglasses (BLUE)' in x)
+m_r_and_b_sunglasses = df_itemsets_by_transaction.fullProductName.apply(lambda x: 'Google Sunglasses (RED)' in x and 'Google Sunglasses (BLUE)' in x)
+
+print('{} transactions with red sunglasses'.format(m_red_sunglasses.sum()))
+print('{} transactions with blue sunglasses'.format(m_blue_sunglasses.sum()))
+print('{} transactions with both'.format(m_r_and_b_sunglasses.sum()))
+print('> {:.0f}% of red orders have blue'.format(m_r_and_b_sunglasses.sum() / m_red_sunglasses.sum() * 100))
+print('> {:.0f}% of blue orders have red'.format(m_r_and_b_sunglasses.sum() / m_blue_sunglasses.sum() * 100))
+
+
 # This can be used as the basis for a recommendation engine, or to inform marketing and product design decisions.
 # 
 # Ignoring the sunglasses...
@@ -312,9 +325,10 @@ rules['rule'] = rules.antecedents.apply(list).astype(str) + '  ->  ' + rules.con
 s = (
     rules[m_no_sunglasses].sort_values('support', ascending=False)
          .head(10)[['rule', 'support', 'confidence']]
+         .set_index('rule')
          .style
 )
-s.bar(subset=['support', 'confidence'], color='#6670ff')
+s.bar(subset=['support', 'confidence'], color='#a5a5a5', width=90)
 
 
 # ### Frequent items & association rules (excluding product variants)
@@ -408,9 +422,133 @@ rules['rule'] = rules.antecedents.apply(list).astype(str) + '  ->  ' + rules.con
 s = (
     rules.sort_values('support', ascending=False)
          .head(10)[['rule', 'support', 'confidence']]
+         .set_index('rule')
          .style
 )
-s.bar(subset=['support', 'confidence'], color='#6670ff')
+s.bar(subset=['support', 'confidence'], color='#a5a5a5', width=90)
+
+
+# ## Tracking Association Rules
+
+transaction_date_map = df[['transactionId', 'date']].drop_duplicates()
+misc_duplicates = transaction_date_map.transactionId.duplicated()
+print('Dropping {} duplicate rows (this number should be very small)'
+      .format(misc_duplicates.sum()))
+transaction_date_map = (
+    transaction_date_map[~misc_duplicates]
+    .set_index('transactionId')['date']
+)
+
+df_itemsets_by_transaction_no_variants['date'] = (
+    df_itemsets_by_transaction_no_variants.index.map(transaction_date_map)
+)
+
+
+df_itemsets_by_transaction_no_variants = df_itemsets_by_transaction_no_variants.reset_index()
+
+
+from typing import List, Tuple
+import hashlib
+
+def get_association_rule_transactions(
+    df : pd.DataFrame,
+    rule : List[list],
+    return_mask : bool = True,
+) -> Tuple[pd.Series]:
+    
+    print('Warning: duplicate items in transactions will be ignored')
+    s_transaction_sets = df.v2ProductName.apply(set)
+
+    # Generate masks where rule is found in the transaction
+    m_antecedents = (set(rule[0]) - s_transaction_sets).apply(len) == 0
+    m_consequents = (set(rule[1]) - s_transaction_sets).apply(len) == 0
+
+    m_follows_rule = m_antecedents & m_consequents
+    m_breaks_rule = m_antecedents & (~m_follows_rule)
+    
+    if return_mask:
+        return m_follows_rule, m_breaks_rule
+    else:
+        return df[m_follows_rule], df[m_breaks_rule]
+
+
+def plot_association_rule_trend(
+    df : pd.DataFrame,
+    rule : List[list],
+    save_to_file : bool = True,
+) -> None:
+
+    m_follows_rule, m_breaks_rule = get_association_rule_transactions(df, rule, return_mask=True)
+    
+    s_follows_rule = df_itemsets_by_transaction_no_variants[m_follows_rule].groupby(pd.Grouper(key='date', freq='W-MON')).size()
+    s_breaks_rule = df_itemsets_by_transaction_no_variants[m_breaks_rule].groupby(pd.Grouper(key='date', freq='W-MON')).size()
+    s_follows_rule.name = 'Follows Rule'
+    s_breaks_rule.name = 'Breaks Rule'
+
+    df_merge = pd.merge(
+        s_follows_rule.to_frame().reset_index(),
+        s_breaks_rule.to_frame().reset_index(),
+        on='date',
+        how='outer'
+    ).set_index('date').sort_index()
+
+    df_merge_cumsum = df_merge.cumsum().fillna(method='pad').fillna(method='backfill')
+    df_merge_cumsum['Confidence Ratio'] = df_merge_cumsum['Follows Rule'] / (df_merge_cumsum['Breaks Rule'] + df_merge_cumsum['Follows Rule'])
+
+    rule_str = ' -> '.join([str(x) for x in rule])
+    print(rule_str)
+
+    fig, ax = plt.subplots(2)
+    df_merge_cumsum['Follows Rule'].plot(ax=ax[0], color='r', label='Follows Rule')
+    df_merge_cumsum['Breaks Rule'].plot(ax=ax[0], color='b', label='Breaks Rule')
+    df_merge_cumsum['Confidence Ratio'].plot(ax=ax[1], color='k', label='Confidence Ratio')
+    ax[0].legend()
+    ax[1].legend()
+    ax[0].set_ylabel('Cumulative Sum of Counts')
+    ax[1].set_ylabel(r'$\Delta$(Follows, Breaks)')
+    plt.xlabel('Date')
+
+    if save_to_file:
+        f_name = 'association_rules_trended_confidence_{}'.format(hashlib.sha1(rule_str.encode('utf-8')).hexdigest()[:10])
+        savefig(f_name)
+
+        f_name = os.path.join('../../results/figures', '{}.png.info.txt'.format(f_name))
+        with open(f_name, 'w') as f:
+            f.write('Plot for association rule:\n')
+            f.write(rule_str)
+            f.write('\n\n' + '#'*20 + '\n')
+            f.write(df_merge.to_csv())
+
+    plt.show()
+
+
+top_rules = rules.sort_values('support', ascending=False).head(20)
+
+for rule in pd.concat((
+        top_rules['antecedents'].apply(list),
+        top_rules['consequents'].apply(list),
+    ), ignore_index=True, sort=False, axis=1).values.tolist():
+    plot_association_rule_trend(
+        df_itemsets_by_transaction_no_variants,
+        rule,
+        save_to_file=False,
+    )
+
+
+# Picking a few of these to output
+
+rule = [
+    ['YouTube Custom Decals', 'Android Sticker Sheet Ultra Removable'],
+    ['Google Laptop and Cell Phone Stickers'],
+]
+plot_association_rule_trend(df_itemsets_by_transaction_no_variants, rule)
+
+
+rule = [
+    ['Red Shine 15 oz Mug', 'Android Sticker Sheet Ultra Removable'],
+    ['Google Laptop and Cell Phone Stickers']
+]
+plot_association_rule_trend(df_itemsets_by_transaction_no_variants, rule)
 
 
 from IPython.display import HTML
