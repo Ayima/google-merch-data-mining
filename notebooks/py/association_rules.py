@@ -499,13 +499,13 @@ def plot_association_rule_trend(
     print(rule_str)
 
     fig, ax = plt.subplots(2)
-    df_merge_cumsum['Follows Rule'].plot(ax=ax[0], color='r', label='Follows Rule')
-    df_merge_cumsum['Breaks Rule'].plot(ax=ax[0], color='b', label='Breaks Rule')
+    df_merge_cumsum['Follows Rule'].plot(ax=ax[0], color='b', label='Follows Rule')
+    df_merge_cumsum['Breaks Rule'].plot(ax=ax[0], color='r', label='Breaks Rule')
     df_merge_cumsum['Confidence Ratio'].plot(ax=ax[1], color='k', label='Confidence Ratio')
     ax[0].legend()
     ax[1].legend()
     ax[0].set_ylabel('Cumulative Sum of Counts')
-    ax[1].set_ylabel(r'$\Delta$(Follows, Breaks)')
+    ax[1].set_ylabel('Ratio of Cumulative Counts')
     plt.xlabel('Date')
 
     if save_to_file:
@@ -522,6 +522,20 @@ def plot_association_rule_trend(
     plt.show()
 
 
+rule = [
+    ['YouTube Custom Decals', 'Android Sticker Sheet Ultra Removable'],
+    ['Google Laptop and Cell Phone Stickers'],
+]
+plot_association_rule_trend(df_itemsets_by_transaction_no_variants, rule, save_to_file=False)
+
+
+rule = [
+    ['Red Shine 15 oz Mug', 'Android Sticker Sheet Ultra Removable'],
+    ['Google Laptop and Cell Phone Stickers']
+]
+plot_association_rule_trend(df_itemsets_by_transaction_no_variants, rule, save_to_file=False)
+
+
 top_rules = rules.sort_values('support', ascending=False).head(20)
 
 for rule in pd.concat((
@@ -533,22 +547,20 @@ for rule in pd.concat((
         rule,
         save_to_file=False,
     )
+    break
 
 
-# Picking a few of these to output
+top_rules = rules.sort_values('support', ascending=False).head(20)
 
-rule = [
-    ['YouTube Custom Decals', 'Android Sticker Sheet Ultra Removable'],
-    ['Google Laptop and Cell Phone Stickers'],
-]
-plot_association_rule_trend(df_itemsets_by_transaction_no_variants, rule)
-
-
-rule = [
-    ['Red Shine 15 oz Mug', 'Android Sticker Sheet Ultra Removable'],
-    ['Google Laptop and Cell Phone Stickers']
-]
-plot_association_rule_trend(df_itemsets_by_transaction_no_variants, rule)
+for rule in pd.concat((
+        top_rules['antecedents'].apply(list),
+        top_rules['consequents'].apply(list),
+    ), ignore_index=True, sort=False, axis=1).values.tolist():
+    plot_association_rule_trend(
+        df_itemsets_by_transaction_no_variants,
+        rule,
+        save_to_file=True,
+    )
 
 
 from IPython.display import HTML
