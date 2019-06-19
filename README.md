@@ -1,11 +1,31 @@
 # Google Merch Data Mining
 
-The purpose of this repository is to build reproducible data mining pipelines using GA data. Source data is primarily from Google Analytics and BigQuery via GA 360.
+The purpose of this repository is to build reproducible data mining pipelines using analytics data made available from the Google Merchendise Store. More information on the BigQuery source data is [available here](https://support.google.com/analytics/answer/7586738?hl=en).
 
-We explore topics such as
+Topics include:
+
+### [Sales Forecasting](https://github.com/Ayima/google-merch-data-mining/blob/master/notebooks/src/sales_forecast.ipynb)
+- Data driven motivation for big-picture marketing efforts
+- Justify marketing spend and be accountable for wins and losses
+- Inform when and which products to promote with product-specific forecasts
+- Anomaly detection to identify and fix issues fast
+
+### [Shopping Cart Association Rules](https://github.com/Ayima/google-merch-data-mining/blob/master/notebooks/src/association_rules.ipynb)
+- Use knowledge of prior purchases for targeted marketing campaigns
+- Identify promotional bundle opportunities
+- Implement / audit realtime recommendation engine
+- Inform UX design
+
+### [Long Term Campaign Value](https://github.com/Ayima/google-merch-data-mining/blob/master/notebooks/src/long_term_campaign_value.ipynb)
+- Visual representation of campaign success in terms of user acquisition
+- Compare long-term value of different marketing campaigns you have run in the past
+
+
+### Ongoing Work
+
+We are also exploring topics as follows on our [`develop` branch](https://github.com/Ayima/google-merch-data-mining/tree/develop/notebooks/src). We encourage contributions! Please fork our code if you are interested in helping to develop our models!
 - User / session clustering
-- Predictive conversion models
 - Page sequence associations
-- Shopping cart item association rules
 - Feature importances for converting segments
+- Predictive conversion models
 - Graph visualizations
