@@ -4,19 +4,19 @@ The purpose of this repository is to build reproducible data mining pipelines us
 
 Topics include:
 
-### [Sales Forecasting](https://github.com/Ayima/google-merch-data-mining/blob/master/notebooks/src/sales_forecast.ipynb)
+### [Sales Forecasting](https://nbviewer.jupyter.org/github/Ayima/google-merch-data-mining/blob/master/notebooks/src/sales_forecast.ipynb)
 - Data driven motivation for big-picture marketing efforts
 - Justify marketing spend and be accountable for wins and losses
 - Inform when and which products to promote with product-specific forecasts
 - Anomaly detection to identify and fix issues fast
 
-### [Shopping Cart Association Rules](https://github.com/Ayima/google-merch-data-mining/blob/master/notebooks/src/association_rules.ipynb)
+### [Shopping Cart Association Rules](https://nbviewer.jupyter.org/github/Ayima/google-merch-data-mining/blob/master/notebooks/src/association_rules.ipynb)
 - Use knowledge of prior purchases for targeted marketing campaigns
 - Identify promotional bundle opportunities
 - Implement / audit realtime recommendation engine
 - Inform UX design
 
-### [Long Term Campaign Value](https://github.com/Ayima/google-merch-data-mining/blob/master/notebooks/src/long_term_campaign_value.ipynb)
+### [Long Term Campaign Value](https://nbviewer.jupyter.org/github/Ayima/google-merch-data-mining/blob/master/notebooks/src/long_term_campaign_value.ipynb)
 - Visual representation of campaign success in terms of user acquisition
 - Compare long-term value of different marketing campaigns you have run in the past
 
