@@ -23,7 +23,7 @@ Topics include:
 
 ### Ongoing Work
 
-We are also exploring topics as follows on our [`develop` branch](https://github.com/Ayima/google-merch-data-mining/tree/develop/notebooks/src). We encourage contributions! Please fork our code if you are interested in helping to develop our models!
+We are also exploring topics as follows on our [`develop` branch](https://github.com/Ayima/google-merch-data-mining/tree/develop/notebooks/src). We encourage pull requests! Please fork our code if you are interested in contributing to this project.
 - User / session clustering
 - Page sequence associations
 - Feature importances for converting segments
